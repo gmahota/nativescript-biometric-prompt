@@ -15,7 +15,8 @@
     "@nativescript/theme": "~2.3.0",
     "nativescript-vue": "~2.4.0",
     "nativescript-biometric-prompt": "file:../src",
-    "tns-core-modules": "~6.4.0"
+    "tns-core-modules": "~6.4.0",
+    "typescript": "~3.5.3"
   },
   "devDependencies": {
     "@babel/core": "~7.1.0",
