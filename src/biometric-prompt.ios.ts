@@ -1,5 +1,31 @@
-import { Common } from './biometric-prompt.common';
+import { BiometricPromptApi } from './biometric-prompt.common';
 
-export class BiometricPrompt extends Common {
+export class BiometricPrompt implements BiometricPromptApi {
+    available(): Promise<import("./biometric-prompt.common").BiometricIDAvailableResult> {
+        throw new Error("Method not implemented.");
+    }
+    authDialog(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    useCustomUI(): boolean {
+        throw new Error("Method not implemented.");
+    }
+    storeDataWithFingerprint(keystoreKeyAlias: string, data: string, biometricMessage: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    retrieveDataWithFingerprint(keystoreKeyAlias: string, biometricPromptMessage: string): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+    fingerprintEncryptedDataExists(keystoreKeyAlias: string): boolean {
+        throw new Error("Method not implemented.");
+    }
+    deleteFingerprintEncryptedData(keystoreKeyAlias: string): void {
+        throw new Error("Method not implemented.");
+    }
+    cleanup(): void {
+        throw new Error("Method not implemented.");
+    }
+    
+
 
 }

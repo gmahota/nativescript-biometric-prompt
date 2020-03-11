@@ -49,20 +49,7 @@ export default {
     }
   },
   methods: {
-    async available() {
-      biometricPromot
-        .authDialog()
-        .then(function(result) {
-          console.log("doCheckAvailable result: " + JSON.stringify(result));
-
-          //this.useCustomUI = result.customUI;
-        })
-        .catch(err => {
-          console.log(
-            "doCheckAvailable error: " + err.code + ", " + err.message
-          );
-          alert("Error: " + err.code + ", " + err.message);
-        });
+    available() {
 
       this.useCustomUI = false;
       this.infoMessage = ""; // Remove custom UI
@@ -71,7 +58,7 @@ export default {
         .available()
         .then(function(result) {
           console.log("doCheckAvailable result: " + JSON.stringify(result));
-
+          alert(JSON.stringify(result));
           //this.useCustomUI = result.customUI;
         })
         .catch(err => {
@@ -89,7 +76,7 @@ export default {
         .storeDataWithFingerprint("ALIAS", this.secretText, "Biometric Message")
         .then(() => {
           console.log("storeDataWithFingerprint result: OK");
-          this.set("infoMessage", ""); // Remove custom UI
+          //this.set("infoMessage", ""); // Remove custom UI
           dialogs.alert("storeDataWithFingerprint result: OK");
         })
         .catch(err => {

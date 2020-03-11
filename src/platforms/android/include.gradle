@@ -4,8 +4,10 @@ android {
 	
 }
 
+repositories {
+	maven { url 'https://jitpack.io' }
+}
+
 dependencies {
-    // Describe plugin native Android dependencies like
-	// implementation "groupName:pluginName:ver" 
-    // EXAMPLE: implementation "com.facebook.fresco:fresco:0.9.0+"
+	implementation 'com.github.JesusM:FingerprintManager:v2.0.2'
 }

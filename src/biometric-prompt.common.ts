@@ -1,28 +1,56 @@
-import { Observable } from 'tns-core-modules/data/observable';
-import * as app from 'tns-core-modules/application';
-import * as dialogs from 'tns-core-modules/ui/dialogs';
-
-export class Common extends Observable {
-  public message: string;
-
-  constructor() {
-    super();
-    this.message = Utils.SUCCESS_MSG();
-  }
-
-  public greet() {
-    return "Hello, NS";
-  }
+export interface BiometricIDAvailableResult {
+  any: boolean;
+  touch?: boolean;
+  face?: boolean;
+  reason?: string;
+  customUI: boolean; // Returns true if you need to show your own biometrics UI
 }
 
-export class Utils {
-  public static SUCCESS_MSG(): string {
-    let msg = `Your plugin is working on ${app.android ? 'Android' : 'iOS'}.`;
+export enum ERROR_CODES {
+  RECOVERABLE_ERROR_BIOMETRICS_NOT_RECOGNIZED = 102, // Biometrics are working and configured correctly, but the biometric input was not recognized
+  RECOVERABLE_ERROR_FINGER_MOVED_TO_FAST = 102, // Finger moved to fast on the fingerprint sensor (only Android)
+  RECOVERABLE_ERROR_FINGER_MUST_COVER_SENSOR = 101, // Finger must cover entire sensor (only Android)
+  DEVELOPER_ERROR = 10, // Unexpected error, report to maintainer of plugin please
+  NOT_AVAILABLE = 20, // Biometrics are not available on device
+  TAMPERED_WITH = -5, // Biometrics was changed (added or removed) since last successful authentication, maybe a hacker was on your device
+  AUTHENTICATION_FAILED = -1, // Biometrics are working and configured correctly, but the biometric input was not recognized
+  CANCEL = -2 // Biometric authentication was canceled, probably by user
+}
 
-    setTimeout(() => {
-      dialogs.alert(`${msg} For real. It's really working :)`).then(() => console.log(`Dialog closed.`));
-    }, 2000);
+export interface BiometricPromptApi {
+  /**
+   * Always check for availability before anything else.
+   */
+  available(): Promise<BiometricIDAvailableResult>;
 
-    return msg;
-  }
+  authDialog(): Promise<void>;
+  /**
+   * Returns true if you need to show your own biometrics UI.
+   */
+  useCustomUI(): boolean;
+
+  /**
+   * Stores your "data" in a safe storage that is encrypted with your biometrics.
+   */
+  storeDataWithFingerprint(keystoreKeyAlias: string, data: string, biometricMessage: string): Promise<void>;
+
+  /**
+   * Retreives your previously stored data in unencrypted form.
+   */
+  retrieveDataWithFingerprint(keystoreKeyAlias: string, biometricPromptMessage: string): Promise<string>;
+
+  /**
+   * Check if you have previously stored data.
+   */
+  fingerprintEncryptedDataExists(keystoreKeyAlias: string): boolean;
+
+  /**
+   * Deletes your previously stored data.
+   */
+  deleteFingerprintEncryptedData(keystoreKeyAlias: string): void;
+
+  /**
+   * Always remember to call cleanup when finished or when leaving the current context, it is necessary to hook into your lifecycle model.
+   */
+  cleanup(): void;
 }
