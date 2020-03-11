@@ -1,5 +1,10 @@
 # nativescript-biometric-prompt
 
+[![Build Status][build-status]][build-url]
+
+[build-status]:https://travis-ci.org/gmahota/nativescript-biometric-prompt.svg?branch=master
+[build-url]:https://travis-ci.org/gmahota/nativescript-biometric-prompt
+
 Add your plugin badges here. See [nativescript-urlhandler](https://github.com/hypery2k/nativescript-urlhandler) for example.
 
 Then describe what's the purpose of your plugin. 
