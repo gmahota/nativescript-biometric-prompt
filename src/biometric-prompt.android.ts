@@ -2,7 +2,7 @@ import * as utils from "tns-core-modules/utils/utils";
 import { BiometricIDAvailableResult, ERROR_CODES, BiometricPromptApi } from './biometric-prompt.common';
 
 
-export class CancelSignal extends android.os.CancellationSignal{
+export class CancelSignal extends android.os.CancellationSignal {
     constructor() {
         super();
 
@@ -15,34 +15,34 @@ export class CancelSignal extends android.os.CancellationSignal{
         console.log("OnCreate() called");
 
     }
-    isCanceled(): any{
+    isCanceled(): any {
         super.isCanceled();
     }
-    
-	throwIfCanceled(): void{
+
+    throwIfCanceled(): void {
         super.throwIfCanceled();
     }
-    
-    setOnCancelListener(param0: android.os.CancellationSignal.OnCancelListener): void{
+
+    setOnCancelListener(param0: android.os.CancellationSignal.OnCancelListener): void {
         super.setOnCancelListener(param0);
     }
 }
 
-export class AuthenticationCallback extends android.hardware.biometrics.BiometricPrompt.AuthenticationCallback{
+export class AuthenticationCallback extends android.hardware.biometrics.BiometricPrompt.AuthenticationCallback {
     onAuthenticationHelp(number, param1) {
 
     }
-onAuthenticationSucceeded(result) {
+    onAuthenticationSucceeded(result) {
 
     }
 
-onAuthenticationFailed() { }
+    onAuthenticationFailed() { }
 
-onAuthenticationError(param0, param1) {
+    onAuthenticationError(param0, param1) {
 
     }
 }
-                       
+
 
 export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt.AuthenticationCallback implements BiometricPromptApi {
 
@@ -144,9 +144,11 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
                         }
                     }))
                     .build();
-                
+
                 // Authenticate with callback functions
-                this.biometricApi.authenticate(new android.os.CancellationSignal(),
+                this.biometricApi.authenticate(
+                    //new android.hardware.biometrics.BiometricPrompt.CryptoObject({ }),
+                    new android.os.CancellationSignal(),
                     utils.ad.getApplicationContext().getMainExecutor(),
                     this
                 );
@@ -387,7 +389,7 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
     }
 
     public onAuthenticationSucceeded(result: android.hardware.biometrics.BiometricPrompt.AuthenticationResult) {
-        
+
         console.log(JSON.stringify(result));
 
         console.log("ola1");
