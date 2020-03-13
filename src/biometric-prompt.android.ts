@@ -28,21 +28,6 @@ export class CancelSignal extends android.os.CancellationSignal {
     }
 }
 
-export class AuthenticationCallback extends android.hardware.biometrics.BiometricPrompt.AuthenticationCallback {
-    onAuthenticationHelp(number, param1) {
-
-    }
-    onAuthenticationSucceeded(result) {
-
-    }
-
-    onAuthenticationFailed() { }
-
-    onAuthenticationError(param0, param1) {
-
-    }
-}
-
 
 export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt.AuthenticationCallback implements BiometricPromptApi {
 
@@ -57,34 +42,31 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
     private cipherInEncryptMode: boolean;
     private encryptionIv: any;
     private cancellationSignal: CancelSignal;
-
+    
     private promiseResolve; // Used for async/callback from FingerprintManager, can be overwritten so don't be a fool with it
     private promiseReject; // Used for async/callback from FingerprintManager, can be overwritten so don't be a fool with it
 
-
+    public isAuth;
 
     constructor() {
         super();
-
+        this.isAuth = false;
         this.keyguardManager = utils.ad.getApplicationContext().getSystemService("keyguard");
-
+        //this.fingerprintManager = utils.ad.getApplicationContext().getSystemService(android.hardware.fingerprint.FingerprintManager.class);
     }
 
     available(): Promise<BiometricIDAvailableResult> {
-        this.stopListening(); // Somebody may be listening in, always stop listening before anything else
         return new Promise((resolve, reject) => {
             try {
 
-                console.log("a");
-
                 if (!this.keyguardManager || !this.keyguardManager.isKeyguardSecure()) {
 
-                    // resolve({
-                    //     any: false,
-                    //     customUI: true,
-                    //     touch:false
-                    // });
-                    //return;
+                    resolve({
+                        any: false,
+                        customUI: true,
+                        touch:false
+                    });
+                    return;
                 }
 
                 // The fingerprint API is only available from Android 6.0 (M, Api level 23)
@@ -110,28 +92,24 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
                     // verifyFingerprint method or not since they'll know the user has no finger prints enrolled but do have a security option enabled
                     // https://developer.android.com/reference/android/app/KeyguardManager.html#isDeviceSecure() only 23+
                     if (this.keyguardManager.isDeviceSecure()) {
-                        console.log("ccc");
                         // resolve({
                         //     any: true,
                         //     customUI: true,
                         //     touch: false
                         // });
                     } else {
-                        console.log("ddd");
                         // User hasn't enrolled any fingerprints to authenticate with
                         // reject(
                         //     `User hasn't enrolled any fingerprints to authenticate with`
                         // );
                     }
                 } else {
-                    console.log("ola - ddd");
                     // resolve({
                     //     any: true,
                     //     customUI: true,
                     //     touch: false
                     // });
                 }
-                console.log("ola - ccc");
 
                 this.biometricApi = new android.hardware.biometrics.BiometricPrompt
                     .Builder(utils.ad.getApplicationContext())
@@ -144,14 +122,6 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
                         }
                     }))
                     .build();
-
-                // Authenticate with callback functions
-                this.biometricApi.authenticate(
-                    //new android.hardware.biometrics.BiometricPrompt.CryptoObject({ }),
-                    new android.os.CancellationSignal(),
-                    utils.ad.getApplicationContext().getMainExecutor(),
-                    this
-                );
 
                 resolve({
                     any: true,
@@ -172,11 +142,24 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
     }
 
     authDialog(): Promise<void> {
-        this.stopListening();
-        console.log("Ola 1");
+        //this.stopListening(); 
+        
         return new Promise((resolve, reject) => {
             try {
-                console.log("Ola 1");
+                this.keystoreKeyAlias ="0000";
+                //this.initCipher(javax.crypto.Cipher.ENCRYPT_MODE, this.keystoreKeyAlias);
+                // Authenticate with callback functions
+
+                // this.biometricApi.authenticate(
+                //     //this.cryptoObject,
+                //     new android.os.CancellationSignal(),
+                //     utils.ad.getApplicationContext().getMainExecutor(),
+                //     this
+                // );
+
+                this.startListening(); // Somebody may be listening in, always stop listening before anything else
+        
+                
 
             } catch (ex) {
                 console.trace(ex);
@@ -187,6 +170,73 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
             }
         });
     }
+
+    // FingerprintManager.AuthenticationCallback callbacks
+
+    public onAuthenticationError(errorCode: number, errString: string): void {
+        // this.promiseReject({
+        //     code: ERROR_CODES.AUTHENTICATION_FAILED,
+        //     message: errString,
+        //     errorCode: errorCode
+        // });
+    }
+
+    public onAuthenticationHelp(helpCode: number, helpString: string) {
+        if (helpCode === 1) {
+            this.promiseReject({
+                code: ERROR_CODES.RECOVERABLE_ERROR_FINGER_MUST_COVER_SENSOR,
+                message: helpString
+            });
+        } else if (helpCode === 5) {
+            this.promiseReject({
+                code: ERROR_CODES.RECOVERABLE_ERROR_FINGER_MOVED_TO_FAST,
+                message: helpString
+            });
+        } else {
+            this.promiseReject({
+                code: ERROR_CODES.RECOVERABLE_ERROR_BIOMETRICS_NOT_RECOGNIZED,
+                message: helpString
+            });
+        }
+
+    }
+
+    public onAuthenticationSucceeded(result: android.hardware.biometrics.BiometricPrompt.AuthenticationResult):Promise<void> {
+        
+        return new Promise((resolve, reject) => {
+            try{
+                
+                this.isAuth = true;
+                
+                resolve();
+
+                this.stopListening();
+            }catch(ex){
+                console.log("bru");
+                //result.wait;
+            }
+        });
+        // if (this.cipherInEncryptMode) {
+        //     this.initCipher(javax.crypto.Cipher.ENCRYPT_MODE, this.keystoreKeyAlias);
+        //     this.tryEncrypt(new java.lang.String(this.data));
+        //     this.promiseResolve();
+
+        // } else {
+        //     this.initCipher(javax.crypto.Cipher.DECRYPT_MODE, this.keystoreKeyAlias);
+        //     const decrypted = this.tryDecrypt();
+        //     console.log(decrypted);
+        //     this.promiseResolve(decrypted);
+        // }
+    }
+
+    public onAuthenticationFailed() {
+        console.log("ola2");
+        // this.promiseReject({
+        //     code: ERROR_CODES.AUTHENTICATION_FAILED,
+        //     message: "Finger not recognized"
+        // });
+    }
+    //End Call Back
 
     storeDataWithFingerprint(keystoreKeyAlias: string, data: string, biometricMessage: string): Promise<void> {
         this.stopListening(); // Somebody may be listening in, always stop listening before anything else
@@ -347,71 +397,31 @@ export class BiometricPrompt extends android.hardware.biometrics.BiometricPrompt
     }
 
     private startListening() {
-        this.cancellationSignal = new android.os.CancellationSignal();
-        //android.hardware.biometrics.BiometricPrompt.authenticate(this.cryptoObject, this.cancellationSignal, 0 /* flags */, this, null);
+        try{
+            //this.cancellationSignal = new android.os.CancellationSignal();
+
+            this.biometricApi.authenticate(
+                    //this.cryptoObject,
+                    new android.os.CancellationSignal(),
+                    utils.ad.getApplicationContext().getMainExecutor(),
+                    this
+                );
+            //this.fingerprintManager.authenticate(this.cryptoObject, this.cancellationSignal, 0 /* flags */, this, null);
+        }
+        catch(ex){
+            console.log(ex);
+        }        //android.hardware.biometrics.BiometricPrompt.authenticate(this.cryptoObject, this.cancellationSignal, 0 /* flags */, this, null);
     }
 
     private stopListening() {
-        if (this.cancellationSignal != null) {
-            this.cancellationSignal.cancel();
-            this.cancellationSignal = null;
+        try{
+            // if (this.cancellationSignal != null) {
+            //     this.cancellationSignal.cancel();
+            //     this.cancellationSignal = null;
+            // }
+        }catch(ex){
+            console.log(ex);
         }
+        
     }
-
-    // FingerprintManager.AuthenticationCallback callbacks
-
-    public onAuthenticationError(errorCode: number, errString: string): void {
-        this.promiseReject({
-            code: ERROR_CODES.AUTHENTICATION_FAILED,
-            message: errString,
-            errorCode: errorCode
-        });
-    }
-
-    public onAuthenticationHelp(helpCode: number, helpString: string) {
-        if (helpCode === 1) {
-            this.promiseReject({
-                code: ERROR_CODES.RECOVERABLE_ERROR_FINGER_MUST_COVER_SENSOR,
-                message: helpString
-            });
-        } else if (helpCode === 5) {
-            this.promiseReject({
-                code: ERROR_CODES.RECOVERABLE_ERROR_FINGER_MOVED_TO_FAST,
-                message: helpString
-            });
-        } else {
-            this.promiseReject({
-                code: ERROR_CODES.RECOVERABLE_ERROR_BIOMETRICS_NOT_RECOGNIZED,
-                message: helpString
-            });
-        }
-
-    }
-
-    public onAuthenticationSucceeded(result: android.hardware.biometrics.BiometricPrompt.AuthenticationResult) {
-
-        console.log(JSON.stringify(result));
-
-        console.log("ola1");
-        // if (this.cipherInEncryptMode) {
-        //     this.initCipher(javax.crypto.Cipher.ENCRYPT_MODE, this.keystoreKeyAlias);
-        //     this.tryEncrypt(new java.lang.String(this.data));
-        //     this.promiseResolve();
-
-        // } else {
-        //     this.initCipher(javax.crypto.Cipher.DECRYPT_MODE, this.keystoreKeyAlias);
-        //     const decrypted = this.tryDecrypt();
-        //     console.log(decrypted);
-        //     this.promiseResolve(decrypted);
-        // }
-    }
-
-    public onAuthenticationFailed() {
-        console.log("ola2");
-        // this.promiseReject({
-        //     code: ERROR_CODES.AUTHENTICATION_FAILED,
-        //     message: "Finger not recognized"
-        // });
-    }
-
 }

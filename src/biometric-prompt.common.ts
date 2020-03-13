@@ -24,10 +24,15 @@ export interface BiometricPromptApi {
   available(): Promise<BiometricIDAvailableResult>;
 
   authDialog(): Promise<void>;
+
+  onAuthenticationSucceeded(result:android.hardware.biometrics.BiometricPrompt.AuthenticationResult): Promise<void>;
+
   /**
    * Returns true if you need to show your own biometrics UI.
    */
   useCustomUI(): boolean;
+
+  isAuth:boolean;
 
   /**
    * Stores your "data" in a safe storage that is encrypted with your biometrics.

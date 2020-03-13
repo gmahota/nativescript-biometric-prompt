@@ -1,6 +1,10 @@
 import { BiometricPromptApi } from './biometric-prompt.common';
 
 export class BiometricPrompt implements BiometricPromptApi {
+    isAuth: boolean;
+    onAuthenticationSucceeded(result: any): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
     available(): Promise<import("./biometric-prompt.common").BiometricIDAvailableResult> {
         throw new Error("Method not implemented.");
     }

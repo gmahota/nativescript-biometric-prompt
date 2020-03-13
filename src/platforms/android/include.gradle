@@ -1,5 +1,7 @@
 /* Include.gradle configuration: http://docs.nativescript.org/plugins/plugins#includegradle-specification */
 
+
+	
 android {
 	
 }
@@ -9,5 +11,6 @@ repositories {
 }
 
 dependencies {
-	implementation 'com.github.JesusM:FingerprintManager:v2.0.2'
+	def biometric_version= '1.0.0-rc02'
+	implementation "androidx.biometric:biometric:$biometric_version"
 }

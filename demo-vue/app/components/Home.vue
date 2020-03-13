@@ -1,23 +1,36 @@
 <template>
   <Page>
     <ActionBar>
-      <Label text="Home"></Label>
+      <Label text="I Clock - Picagem"></Label>
     </ActionBar>
 
     <StackLayout>
       <Label :text="infoMessage" class="h2 text-center" textWrap="true" />
-      <TextField :text="secretText" />
-      <Button text="Check if biometrics is available" @tap="available" />
-      <Button text="Encrypt data with biometric" @tap="encryptData" />
+      <!-- <TextField :text="secretText" /> -->
+
+      <Button text="Check In" @tap="available" />
+      <Button text="Check Out" @tap="available" />
+
+      <Label :text="'Time: ' + time" class="font-weight-bold m-b-5" />
+      <Label :text="'Latitude: ' + lat" class="font-weight-bold m-b-5" />
+      <Label :text="'Longitude: ' + lon" class="font-weight-bold m-b-5" />
+      <Label :text="'Speed: ' + speed" class="font-weight-bold m-b-5" />
+      <Label :text="'Address: ' + addr" textWrap="true" class="font-weight-bold m-b-5" />
+      <Label :text="'Sucess Time Track For - User Name: ' + user.name" class="font-weight-bold m-b-5" />
+
+      <!-- <Button text="Encrypt data with biometric" @tap="encryptData" />
       <Button text="Decrypt data with biometric" @tap="decryptData" />
       <Button text="Check if encrypted data exists" @tap="dataExists" />
-      <Button text="Delete encrypted data" @tap="deleteData" />
+      <Button text="Delete encrypted data" @tap="deleteData" />-->
     </StackLayout>
   </Page>
 </template>
 
 <script>
+import * as Geolocation from "nativescript-geolocation";
+
 var biometricPromptPlugin = require("nativescript-biometric-prompt");
+
 var biometricPrompt = new biometricPromptPlugin.BiometricPrompt();
 
 export default {
@@ -25,7 +38,19 @@ export default {
     return {
       useCustomUI: false,
       secretText: "Dette er hemmeligt",
-      infoMessage: ""
+      infoMessage: "",
+      needLocation: false,
+      locationFailure: true,
+      lat: "",
+      lon: "",
+      speed: "",
+      addr: "",
+      time: "",
+      message: "Attendance Record",
+      img: "",
+      pickedImage: null,
+      user: { code: "", name: "" },
+      touch: 0
     };
   },
   mounted() {
@@ -49,24 +74,120 @@ export default {
     }
   },
   methods: {
-    available() {
+    getLocation() {
+      try {
+        Geolocation.enableLocationRequest(true).then(() => {
+          Geolocation.isEnabled().then(isLocationEnabled => {
+            //console.log("result is " + isLocationEnabled);
 
+            if (!isLocationEnabled) {
+              this.needLocation = false;
+              this.locationFailure = true;
+              // potentially do more then just end here...
+              return;
+            }
+
+            // MUST pass empty object!!
+            Geolocation.getCurrentLocation({})
+              .then(res => {
+                var d = new Date();
+                this.lat = res.latitude;
+                this.lon = res.longitude;
+                this.speed = res.speed;
+                this.time =
+                  d.getDate() +
+                  "/" +
+                  (d.getMonth() + 1) +
+                  "/0" +
+                  d.getFullYear() +
+                  " " +
+                  d.getHours() +
+                  ":" +
+                  d.getMinutes();
+                // get the address (REQUIRES YOUR OWN GOOGLE MAP API KEY!)
+                fetch(
+                  "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+                    res.latitude +
+                    "," +
+                    res.longitude +
+                    "&key=AIzaSyAHdHRPlDZfwVNhWBUYqFSzUvLSnddepsQ"
+                )
+                  .then(response => response.json())
+                  .then(r => {
+                    this.addr = r.results[0].formatted_address;
+                  });
+              })
+              .catch(e => {
+                console.log("loc error", e);
+              });
+          });
+        });
+      } catch (err) {
+        alert({
+          title: `Result`,
+          message: JSON.stringify(err),
+          okButtonText: "OK"
+        });
+      }
+    },
+
+    getUserName() {
+
+      this.getLocation();
+
+      if (this.user.code == "") {
+        this.user = { code: "C001", name: "Guimarães Mahota" };
+        return;
+      }
+
+      if (this.user.code == "C001") {
+        this.user = { code: "C002", name: "Nelson Moiane" };
+        return;
+      }
+
+      if (this.user.code == "C002") {
+        this.user = { code: "C003", name: "Andre João" };
+        return;
+      }
+
+      if (this.user.code == "C003") {
+        this.user = { code: "C001", name: "Guimarães Mahota" };
+        return;
+      }
+    },
+
+    available() {
       this.useCustomUI = false;
       this.infoMessage = ""; // Remove custom UI
 
       biometricPrompt
         .available()
-        .then(function(result) {
+        .then(result => {
           console.log("doCheckAvailable result: " + JSON.stringify(result));
-          alert(JSON.stringify(result));
+
+          biometricPrompt
+            .onAuthenticationSucceeded({})
+            .then(() => {})
+            .catch(err => {
+              console.log(
+                "doCheckAvailable error: " + err.code + ", " + err.message
+              );
+              //alert("Error: " + err.code + ", " + err.message);
+            });
+
+          biometricPrompt.authDialog({}).then(() => {});
+
+          //alert(JSON.stringify(result));
           //this.useCustomUI = result.customUI;
         })
         .catch(err => {
           console.log(
             "doCheckAvailable error: " + err.code + ", " + err.message
           );
-          alert("Error: " + err.code + ", " + err.message);
+          //alert("Error: " + err.code + ", " + err.message);
         });
+
+      this.getUserName();
     },
     encryptData() {
       if (this.useCustomUI) {

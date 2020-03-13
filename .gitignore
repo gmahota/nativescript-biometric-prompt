@@ -24,3 +24,6 @@ publish/package
 demo/report/report.html
 demo/report/stats.json
 !demo-vue/app/app.js
+
+#Android Nativescript - Google Services
+demo-vue/app/App_Resources/Android/google-services.json
