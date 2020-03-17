@@ -16,7 +16,7 @@
       <Label :text="'Longitude: ' + lon" class="font-weight-bold m-b-5" />
       <Label :text="'Speed: ' + speed" class="font-weight-bold m-b-5" />
       <Label :text="'Address: ' + addr" textWrap="true" class="font-weight-bold m-b-5" />
-      <Label :text="'Sucess Time Track For - User Name: ' + user.name" class="font-weight-bold m-b-5" />
+      <Label :text="'Sucess Time Track For - : ' + user.name" class="font-weight-bold m-b-5" />
 
       <!-- <Button text="Encrypt data with biometric" @tap="encryptData" />
       <Button text="Decrypt data with biometric" @tap="decryptData" />
@@ -28,6 +28,7 @@
 
 <script>
 import * as Geolocation from "nativescript-geolocation";
+import axios from "axios";
 
 var biometricPromptPlugin = require("nativescript-biometric-prompt");
 
@@ -50,7 +51,8 @@ export default {
       img: "",
       pickedImage: null,
       user: { code: "", name: "" },
-      touch: 0
+      touch: 0,
+      items: null
     };
   },
   mounted() {
@@ -132,28 +134,81 @@ export default {
     },
 
     getUserName() {
-
       this.getLocation();
 
       if (this.user.code == "") {
-        this.user = { code: "C001", name: "Guimarães Mahota" };
+        this.user = { code: "C001", name: "Guimarães Mahota", status: "Early" };
         return;
       }
 
       if (this.user.code == "C001") {
-        this.user = { code: "C002", name: "Nelson Moiane" };
+        this.user = { code: "C002", name: "Nelson Moiane", status: "Late" };
         return;
       }
 
       if (this.user.code == "C002") {
-        this.user = { code: "C003", name: "Andre João" };
+        this.user = { code: "C003", name: "Andre João", status: "Absent" };
         return;
       }
 
       if (this.user.code == "C003") {
-        this.user = { code: "C001", name: "Guimarães Mahota" };
+        this.user = { code: "C001", name: "Guimarães Mahota", status: "Late" };
         return;
       }
+    },
+
+    getIClock() {
+      let data = { thursday: "Early" };
+      axios({
+        method: "Get",
+        url:
+          "https://mahotacrm.firebaseio.com/tests.json?name=" + this.user.name,
+        data
+      }).then(
+        result => {
+          console.log(result);
+          this.item = result.data;
+          this.setIClock();
+        },
+        error => {
+          console.error(error);
+        }
+      );
+    },
+
+    setIClock() {
+      let id = this.user.code;
+      let data = {
+          [this.user.code]:{
+          code: this.user.code,
+          friday: "",
+          monday: "Early",
+          name: this.user.name,
+          period: "This Week",
+          saturday: "",
+          sunday: "",
+          thursday: this.user.status,
+          totalAbsent: 1,
+          totalDayEarly: 2,
+          totalDayLate: 1,
+          tuesday: "",
+          wednesday: ""
+        }
+      };
+
+      axios({
+        method: "PATCH",
+        url: "https://mahotacrm.firebaseio.com/tests.json",
+        data
+      }).then(
+        result => {
+          console.log(result);
+          //this.item = result.data;
+        },
+        error => {
+          console.error(error);
+        }
+      );
     },
 
     available() {
@@ -188,6 +243,8 @@ export default {
         });
 
       this.getUserName();
+
+      this.getIClock();
     },
     encryptData() {
       if (this.useCustomUI) {
