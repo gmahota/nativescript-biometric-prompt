@@ -13,7 +13,7 @@
   "repository": "<fill-your-repository-here>",
   "dependencies": {
     "@nativescript/theme": "~2.3.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "nativescript-biometric-prompt": "file:../src",
     "nativescript-geolocation": "^5.1.0",
     "nativescript-vue": "~2.4.0",
